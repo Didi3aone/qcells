@@ -1,0 +1,751 @@
+var geocoder;
+var map;
+var marker;
+var markers = [];
+var data_markers = [];
+var distance;
+var _lat;
+var _lng;
+var _lat_user;
+var _lng_user;
+var _search_by;
+var infoWindowContent = [];
+var markerCluster;
+var flag = false;
+var infoWindow;
+var infobox;
+var search_flag = true;
+
+function getData (latitude,longitude,callback) {
+	$('.contloading').addClass('active');
+	
+	var search = $("#search-box").val();
+	var search_by = $("#search-by").val();
+	// var cust_color = (($('#cust_color').is(":checked")) ? 1 : 0);
+	var cust_color = 0;
+	var category = [];
+	
+	
+	if ($('input[name="category[]"]:checked').length != 0) {
+		$('input[name="category[]"]:checked').each( function () {
+			category.push($(this).val());
+		});
+	}
+	
+	markers = [];
+	
+	markers[0] = [_lat_user,_lng_user];
+	
+	var zoom = map.getZoom();
+	
+	$.ajax({
+			type: "post",
+			url: "/store/get-data",
+			cache: false,
+			data: {lat_user: _lat_user, lng_user: _lng_user, lat: latitude, lng: longitude, distance: distance,cust_color:cust_color, search: search, search_by : search_by, category:category,zoom:zoom},
+			dataType:'json',
+			success: function(json) {
+					
+				if (search_by == 2 || search_by == 3) {
+					if (search_flag == true) {
+						if (json.latitude_moved != "" && json.longitude_moved != "") {
+							var myLatlng = new google.maps.LatLng(json.latitude_moved, json.longitude_moved);
+							setlatlng (json.latitude_moved,json.longitude_moved);
+							map.setCenter(myLatlng);
+						}
+					}
+				}
+				
+				if (json.datas.length > 0) {
+					// $("#listname").html("Found "+ json.datas.length +" Stores : ");
+					// $(".storelist").empty();
+					var no = 1;
+					
+					$.each( json.datas, function( key, data ) {
+						markers[no] = [data.latitude,data.longitude];
+						infoWindowContent[no] = ['<div class="storeinfofloat" id="addressfloat">'+
+													'   <span class="storepic" itemprop="photo">'+
+													'       <img src="' + ((data.store_photo) ? data.store_photo : "/rsc/img/ui/store-img-placeholder.png") + '" alt="' + data.name + '" />'+
+													'   </span>'+
+													'   <a href="https://www.google.com/maps/dir/Current+Location/'+ data.latitude +','+data.longitude+'" class="btn opgoogbtn" target="_blank">Open in google</a><br/>'+
+													'   <a href="/store/detail/'+ data.pretty_url +'" class="btn storedetbtn" target="_blank">View Detail</a>'+
+													'   <div class="lead"></div>'+
+													'   <span class="storename storeclick" itemprop="name" onclick="javascript:storeclick(\''+data.latitude+'\',\''+data.longitude+'\',\''+data.phone+'\')">'+ data.name +'</span>'+
+													'   <span class="store-dist">('+ Number(parseFloat(data.user_distance).toFixed(2)) +' km away)</span>'+
+													'   <span class="storecont store-add" itemprop="address">'+ ((data.full_address) ? data.full_address : data.address) +'</span>'+
+													'   <a href="tel:'+ ((data.phone) ? data.phone : "0") +'" class="storecont store-phone" itemprop="telephone">'+ ((data.phone) ? data.phone : "-") +'</a>'+
+													'   <span class="storecont store-ophours"><time itemprop="openingHours" datetime="'+ ((data.opening_hour) ? data.opening_hour : "-") +'">'+ ((data.opening_hour) ? data.opening_hour : "-") +'</time></span>'+
+													'</div>'];
+						// if (search_by == 2 && no == 1) {
+							// if (search_flag == true) {
+								// var myLatlng = new google.maps.LatLng(data.latitude, data.longitude);
+								// setlatlng (data.latitude,data.longitude);
+								// map.setCenter(myLatlng);
+							// }
+						// }
+						// var elems = '<div class="store" itemscope itemtype="http://schema.org/LocalBusiness">' +
+                                // '<a class="storelink" href="/store/detail/'+ data.pretty_url +'">' +
+                                    // '<span class="storenum">'+ ((no < 10 ) ? "0"+no : no) +'</span>' +
+                                    // '<span class="storepic" itemprop="photo">' + 
+									// '<img src="' + ((data.store_photo) ? data.store_photo : "/rsc/img/ui/store-img-placeholder.png") + '" alt="' + data.name + '">' +
+									// '</span>' +
+                                    // '<span class="storeinfo">' +
+                                        // '<span class="storename" itemprop="name">'+ data.name +'</span>' +
+                                        // '<span class="store-dist">('+ Number(parseFloat(data.user_distance).toFixed(2)) +' km away)</span>' +
+                                        // '<span class="storecont store-add" itemprop="address">'+ ((data.full_address) ? data.full_address : data.address) +'</span>' +
+                                        // '<span class="storecontgroup">' +
+                                            // '<span class="storecont store-phone" itemprop="telephone">'+ ((data.phone) ? data.phone : "-") +'</span>' +
+                                            // '<span class="storecont store-ophours"><time itemprop="openingHours" datetime="'+ ((data.opening_hour) ? data.opening_hour : "-") +'">'+ ((data.opening_hour) ? data.opening_hour : "-") +'</time></span>' +
+                                        // '</span>' +
+                                    // '</span>' +
+                                // '</a>' +
+                                // '<a href="https://www.google.com/maps/dir/Current+Location/'+ data.latitude +','+data.longitude+'" class="btn storeinfobtn" target="_blank">Open in google</a>' +
+                            // '</div>';
+						// $(".storelist").append(elems);
+						
+						no++;
+						
+					});
+					// if (json.datas.length > 3) $(".scrollbarcust").customScrollbar({updateOnWindowResize: true});
+					
+				} 
+				// else if (json.datas.length == 0 && json.o_datas.length > 0) {
+					// // var string_message = "Not Found within selected Radius, other recomended Stores : ";
+					// // if (json.o_datas.length == 0) string_message = "Store Not Found.";
+					// // $("#listname").html(string_message);
+					// // $(".storelist").empty();
+					// // var no = 1;
+					// // //using other datas 
+					// // $.each( json.o_datas, function( key, data ) {
+						// // markers[no] = [data.latitude,data.longitude];
+						// // infoWindowContent[no] = ['<div class="storeinfofloat" id="addressfloat">'+
+													// // '   <span class="storepic" itemprop="photo">'+
+													// // //'       <span class="balloon">Available Here!</span>'+
+													// // '       <img src="' + ((data.store_photo) ? data.store_photo : "/rsc/img/ui/store-img-placeholder.png") + '" alt="' + data.name + '" />'+
+													// // '   </span>'+
+													// // '   <a href="https://www.google.com/maps/dir/Current+Location/'+ data.latitude +','+data.longitude+'" class="btn opgoogbtn" target="_blank">Open in google</a><br/>'+
+													// // '   <a href="/store/detail/'+ data.pretty_url +'" class="btn storedetbtn">View Detail</a>'+
+													// // '   <div class="lead"></div>'+
+													// // '   <span class="storename" itemprop="name">'+ data.name +'</span>'+
+													// // '   <span class="store-dist">('+ Number(parseFloat(data.user_distance).toFixed(2)) +' km away)</span>'+
+													// // '   <span class="storecont store-add" itemprop="address">'+ ((data.full_address) ? data.full_address : data.address) +'</span>'+
+													// // '   <a href="tel:'+ ((data.phone) ? data.phone : "0") +'" class="storecont store-phone" itemprop="telephone">'+ ((data.phone) ? data.phone : "-") +'</a>'+
+													// // '   <span class="storecont store-ophours"><time itemprop="openingHours" datetime="'+ ((data.opening_hour) ? data.opening_hour : "-") +'">'+ ((data.opening_hour) ? data.opening_hour : "-") +'</time></span>'+
+													// // '</div>'];
+						
+						// // var elems = '<div class="store" itemscope itemtype="http://schema.org/LocalBusiness">' +
+                                // // '<a class="storelink" href="/store/detail/'+ data.pretty_url +'">' +
+                                    // // '<span class="storenum">'+ ((no < 10 ) ? "0"+no : no) +'</span>' +
+                                    // // '<span class="storepic" itemprop="photo">' + 
+									// // '<img src="' + ((data.store_photo) ? data.store_photo : "/rsc/img/ui/store-img-placeholder.png") + '" alt="' + data.name + '">' +
+									// // '</span>' +
+                                    // // '<span class="storeinfo">' +
+                                        // // '<span class="storename" itemprop="name">'+ data.name +'</span>' +
+                                        // // '<span class="store-dist">('+ Number(parseFloat(data.user_distance).toFixed(2)) +' km away)</span>' +
+                                        // // '<span class="storecont store-add" itemprop="address">'+ ((data.full_address) ? data.full_address : data.address) +'</span>' +
+                                        // // '<span class="storecontgroup">' +
+                                            // // '<span class="storecont store-phone" itemprop="telephone">'+ ((data.phone) ? data.phone : "-") +'</span>' +
+                                            // // '<span class="storecont store-ophours"><time itemprop="openingHours" datetime="'+ ((data.opening_hour) ? data.opening_hour : "-") +'">'+ ((data.opening_hour) ? data.opening_hour : "-") +'</time></span>' +
+                                        // // '</span>' +
+                                    // // '</span>' +
+                                // // '</a>' +
+                                // // '<a href="https://www.google.com/maps/dir/Current+Location/'+ data.latitude +','+data.longitude+'" class="btn storeinfobtn" target="_blank">Open in google</a>' +
+                            // // '</div>';
+						// // $(".storelist").append(elems);
+						
+						// no++;
+						
+					// });
+					
+					// // if (json.o_datas.length > 3) $(".scrollbarcust").customScrollbar({updateOnWindowResize: true});
+					
+				// }
+				callback(true);
+			},
+			error: function() {
+				$('.contloading').removeClass('active');
+				$('#popup .modal-title').html("Error !!!");
+				$('#popup .modal-text').html('<p>Ada Kesalahan Sistem.</p>');
+				$('#popup').addClass('active');
+			}
+		});
+}
+
+// Sets the map on all markers in the array.
+function setMapOnAll(map) {
+  for (var i = 0; i < data_markers.length; i++) {
+    data_markers[i].setMap(map);
+  }
+}
+
+// Removes the markers from the map, but keeps them in the array.
+function clearMarkers() {
+  setMapOnAll(null);
+}
+
+// Deletes all markers in the array by removing references to them.
+function deleteMarkers() {
+  clearMarkers();
+  data_markers = [];
+}
+
+function setlatlng (latitude,longitude) {
+	_lat = latitude;
+	_lng = longitude;
+}
+
+function setlatlng_user (latitude,longitude) {
+	_lat_user = latitude;
+	_lng_user = longitude;
+}
+
+function initialize(latitude, longitude) {
+		var myLatlng = new google.maps.LatLng(latitude, longitude);
+		var mapOptions;
+		
+		if (latitude == 0 && longitude == 0) {
+			myLatlng = new google.maps.LatLng(-1.7364578, 117.5134753);
+			mapOptions = {
+				zoom: 5,
+				center: myLatlng
+			}
+		} else {
+			mapOptions = {
+				zoom: 15,
+				center: myLatlng
+			}
+		}
+		// console.log(myLatlng);
+
+		var elem = document.getElementById('gmap_object');
+		// console.log(elem);
+
+		map = new google.maps.Map(elem, mapOptions);
+		
+		geocoder = new google.maps.Geocoder();
+		
+		infoWindow = new google.maps.InfoWindow();
+		
+		//set lat long
+		setlatlng (latitude,longitude);
+		
+		mcOptions = {styles: [{
+			height: 52,
+			url: "/rsc/img/ui/store_pin_53.png",
+			width: 53
+		},
+		{
+			height: 55,
+			url: "/rsc/img/ui/store_pin_56.png",
+			width: 56
+		},
+		{
+			height: 65,
+			url: "/rsc/img/ui/store_pin_66.png",
+			width: 66
+		},
+		{
+			height: 77,
+			url: "/rsc/img/ui/store_pin_78.png",
+			width: 78
+		},
+		{
+			height: 89,
+			url: "/rsc/img/ui/store_pin_90.png",
+			width: 90
+		}]}
+		
+		markerCluster = new MarkerClusterer(map,markers,mcOptions);
+		
+		//get data
+		// getsearchdatas ();
+		
+		//maps dragend listener
+		// google.maps.event.addListener(map,'dragend',function(event) {
+			// distance = setproximityfrommap();
+			// latitude = map.getCenter().lat();
+			// longitude = map.getCenter().lng();
+			
+			// //set lat long
+			// setlatlng (latitude,longitude);
+			
+			// if (_search_by != 2) {
+				// getsearchdatas ();
+			// }
+			
+		// });
+		
+		infobox = new InfoBox({
+			 disableAutoPan: false,
+			 maxWidth: 360,
+			 pixelOffset: new google.maps.Size(-140, 0),
+			 zIndex: null,
+			 boxStyle: {
+				background: "url('/rsc/img/ui/segitiga-store.png') 116px 0px no-repeat",
+				opacity: 1,
+				width: "365px"
+			},
+			closeBoxMargin: "20px 10px 2px 2px;",
+			closeBoxURL: "/rsc/img/ui/close_store_button.png",
+			infoBoxClearance: new google.maps.Size(1, 1)
+		});
+		
+		google.maps.event.addListener(infobox, 'domready', function(){
+			flag = true;
+		}); 
+		
+		google.maps.event.addListener(infobox,'closeclick',function(){
+			flag = false;
+		});
+		
+		google.maps.event.addListener(map,'dragend',function(event) {
+			if (flag == true) flag = false;
+		});
+		
+		google.maps.event.addListener(map,'zoom_changed',function(event) {
+			if (flag == true) flag = false;
+		});
+		
+		google.maps.event.addListener(map,'idle',function(event) {
+			
+			distance = setproximityfrommap();
+			latitude = map.getCenter().lat();
+			longitude = map.getCenter().lng();
+			
+			//set lat long
+			setlatlng (latitude,longitude);
+			
+			search_flag = false;
+			
+			// if (_search_by != 2 && flag == false) {
+			if (flag == false) {
+				getsearchdatas ();
+			}
+			
+			
+		});
+		
+		// google.maps.event.addListenerOnce (map, 'bounds_changed', function() {
+			// distance = setproximityfrommap();
+			// getsearchdatas ();
+		// });
+		
+}
+
+var x = document.getElementById("gmap_object"); 
+function getLocation(){
+  if (navigator.geolocation){
+	navigator.geolocation.getCurrentPosition(
+		function(position) {
+			_lat_user = position.coords.latitude;
+			_lng_user = position.coords.longitude;
+			
+			google.maps.event.addDomListener(window, 'load', initialize(position.coords.latitude, position.coords.longitude));
+		},
+		function(error){
+			google.maps.event.addDomListener(window, 'load', initialize(0, 0));
+			switch(error.code) 
+				{
+				case error.PERMISSION_DENIED:
+					$('.contloading').removeClass('active');
+					$('#popup .modal-title').html("Error !!!");
+					$('#popup .modal-text').html('<p>Perkenankan lokasi Anda untuk membantu kami mendapatkan lokasi Anda .</p>');
+					$('#popup').addClass('active');
+				  // alert("Please allow user location to help us get your location.");
+				  break;
+				case error.POSITION_UNAVAILABLE:
+					$('.contloading').removeClass('active');
+					$('#popup .modal-title').html("Error !!!");
+					$('#popup .modal-text').html('<p>Posisi Anda tidak ditemukan.</p>');
+					$('#popup').addClass('active');
+				  // alert("Location information is unavailable.");
+				  break;
+				case error.TIMEOUT:
+					$('.contloading').removeClass('active');
+					$('#popup .modal-title').html("Error !!!");
+					$('#popup .modal-text').html('<p>Permintaan untuk mendapatkan lokasi pengguna timed out.</p>');
+					$('#popup').addClass('active');
+				  // alert("The request to get user location timed out.");
+				  break;
+				case error.UNKNOWN_ERROR:
+					$('.contloading').removeClass('active');
+					$('#popup .modal-title').html("Error !!!");
+					$('#popup .modal-text').html('<p>Pencarian sedang error. Coba sekali lagi.</p>');
+					$('#popup').addClass('active');
+				  // alert("An unknown error occurred.");
+				  break;
+				}
+		}, { enableHighAccuracy: true,timeout : 5000 }
+	);
+  }
+  else{x.innerHTML="Geolocation is not supported by this browser.";}
+}
+
+function moveToCurrentLocation(){
+  if (navigator.geolocation){
+	navigator.geolocation.getCurrentPosition(
+		function(position) {
+			_lat_user = position.coords.latitude;
+			_lng_user = position.coords.longitude;
+			
+			var myLatlng = new google.maps.LatLng(_lat_user, _lng_user);
+			setlatlng (_lat_user,_lng_user);
+			map.setCenter(myLatlng);
+			
+			console.log(_lat_user);
+			console.log(_lng_user);
+			
+			// google.maps.event.addDomListener(window, 'load', initialize(position.coords.latitude, position.coords.longitude));
+		},
+		function(error){
+			// google.maps.event.addDomListener(window, 'load', initialize(-7.2754438, 112.6416439));
+			switch(error.code) 
+				{
+				case error.PERMISSION_DENIED:
+					$('.contloading').removeClass('active');
+					$('#popup .modal-title').html("Error !!!");
+					$('#popup .modal-text').html('<p>Perkenankan lokasi Anda untuk membantu kami mendapatkan lokasi Anda .</p>');
+					$('#popup').addClass('active');
+				  // alert("Please allow user location to help us get your location.");
+				  break;
+				case error.POSITION_UNAVAILABLE:
+					$('.contloading').removeClass('active');
+					$('#popup .modal-title').html("Error !!!");
+					$('#popup .modal-text').html('<p>Posisi Anda tidak ditemukan.</p>');
+					$('#popup').addClass('active');
+				  // alert("Location information is unavailable.");
+				  break;
+				case error.TIMEOUT:
+					$('.contloading').removeClass('active');
+					$('#popup .modal-title').html("Error !!!");
+					$('#popup .modal-text').html('<p>Permintaan untuk mendapatkan lokasi pengguna timed out.</p>');
+					$('#popup').addClass('active');
+				  // alert("The request to get user location timed out.");
+				  break;
+				case error.UNKNOWN_ERROR:
+					$('.contloading').removeClass('active');
+					$('#popup .modal-title').html("Error !!!");
+					$('#popup .modal-text').html('<p>Pencarian sedang error. Coba sekali lagi.</p>');
+					$('#popup').addClass('active');
+				  // alert("An unknown error occurred.");
+				  break;
+				}
+		}, { enableHighAccuracy: true,timeout : 5000 }
+	);
+  }
+  else{x.innerHTML="Geolocation is not supported by this browser.";}
+}
+
+function clearClusters() {
+	markerCluster.clearMarkers();
+}
+
+function getsearchdatas () {
+	deleteMarkers();
+	clearClusters();
+	// console.log("here");
+	//find lat long 
+	getData (_lat,_lng,function(data){
+		var bounds = new google.maps.LatLngBounds();
+		var marker;
+		
+		// console.log(markers.length);
+		// Loop through our array of markers & place each one on the map  
+		for( i = 0; i < markers.length; i++ ) {
+			var position = new google.maps.LatLng(markers[i][0], markers[i][1]);
+			// bounds.extend(position);
+			
+			//change icon
+			if(i == 0) { icon = "/rsc/img/ui/pin-my.png"; }
+			else { icon = "/rsc/img/ui/pinbig.png"; }
+			
+			var marker = new google.maps.Marker({
+				position: position,
+				map: map,
+				animation: google.maps.Animation.DROP,
+				icon: icon,
+			});
+			
+			// Allow each marker to have an info window    
+			google.maps.event.addListener(marker, 'click', (function(marker, i) {
+				return function() {
+					infobox.setContent(infoWindowContent[i][0]);
+					infobox.open(map, marker);
+					
+					if (marker.getAnimation() != null) {
+						marker.setAnimation(null);
+					} else {
+						marker.setAnimation(google.maps.Animation.BOUNCE);
+						setTimeout(function() {
+								marker.setAnimation(null);
+						}, 700);
+					}
+				}
+			})(marker, i));
+			
+			data_markers.push(marker);
+		}
+		markerCluster.addMarkers(data_markers);
+		
+		$('.contloading').removeClass('active');
+		
+	});
+}
+
+function codeAddress(address,callback) {
+	geocoder.geocode( { 'address': address}, function(results, status) {
+	  switch(status) 
+		{
+		case google.maps.GeocoderStatus.OK:
+			map.setCenter(results[0].geometry.location);
+			// marker.setPosition(results[0].geometry.location);
+			// console.log("lat : " + results[0].geometry.location.lat());
+			setlatlng (results[0].geometry.location.lat(),results[0].geometry.location.lng());
+			callback(results[0].geometry.location.lat(),results[0].geometry.location.lng());
+		  break;
+		case google.maps.GeocoderStatus.ZERO_RESULTS:
+			$('.contloading').removeClass('active');
+			$('#popup .modal-title').html("Error !!!");
+			$('#popup .modal-text').html('<p>Lokasi tidak di temukan</p>');
+			$('#popup').addClass('active');
+		  // alert("Location information is unavailable.");
+		  break;
+		case google.maps.GeocoderStatus.OVER_QUERY_LIMIT:
+			$('.contloading').removeClass('active');
+			$('#popup .modal-title').html("Error !!!");
+			$('#popup .modal-text').html('<p>Limit pencarian sudah habis.</p>');
+			$('#popup').addClass('active');
+		  // alert("The request to get user location timed out.");
+		  break;
+		case google.maps.GeocoderStatus.REQUEST_DENIED:
+			$('.contloading').removeClass('active');
+			$('#popup .modal-title').html("Error !!!");
+			$('#popup .modal-text').html('<p>Pencarian di tolak.</p>');
+			$('#popup').addClass('active');
+		  // alert("An unknown error occurred.");
+		  break;
+		case google.maps.GeocoderStatus.INVALID_REQUEST:
+			$('.contloading').removeClass('active');
+			$('#popup .modal-title').html("Error !!!");
+			$('#popup .modal-text').html('<p>Pencarian tidak valid.</p>');
+			$('#popup').addClass('active');
+		  // alert("An unknown error occurred.");
+		  break;
+		case google.maps.GeocoderStatus.UNKNOWN_ERROR:
+			$('.contloading').removeClass('active');
+			$('#popup .modal-title').html("Error !!!");
+			$('#popup .modal-text').html('<p>Pencarian sedang error. Coba sekali lagi.</p>');
+			$('#popup').addClass('active');
+		  // alert("An unknown error occurred.");
+		  break;
+		}
+	  
+	  
+	  // if (status == google.maps.GeocoderStatus.OK) {
+		// map.setCenter(results[0].geometry.location);
+		// // marker.setPosition(results[0].geometry.location);
+		// // console.log("lat : " + results[0].geometry.location.lat());
+		// setlatlng (results[0].geometry.location.lat(),results[0].geometry.location.lng());
+		// callback(results[0].geometry.location.lat(),results[0].geometry.location.lng());
+	  // } else {
+		// $('.contloading').removeClass('active');
+		// $('#popup .modal-title').html("Error !!!");
+		// $('#popup .modal-text').html('<p>Geocode was not successful for the following reason: '+ status +'</p>');
+		// $('#popup').addClass('active');
+		// // alert("Geocode was not successful for the following reason: " + status);
+	  // }
+	});
+}
+
+function initmaps (_latitude,_longitude,_user_latitude,_user_longitude,search_by) {
+	if (_latitude == 0 && _longitude == 0) {
+		getLocation();
+	} else {
+		setlatlng (_latitude,_longitude);
+		setlatlng_user (_user_latitude,_user_longitude);
+		_search_by = search_by;
+		google.maps.event.addDomListener(window, 'load', initialize(_latitude, _longitude));
+		// getsearchdatas ();
+	}
+}
+
+$("#cust_color").change(function(){
+	getsearchdatas ();
+});
+
+$("#search-store").click(function(){
+	var search_by = $("#search-by").val();
+	var search_box = $("#search-box").val();
+	
+	
+	if (search_box == "") {
+		$("#search-by").val("1");
+	} else {
+		_search_by = search_by;
+		if (search_by == 1) {
+			//search by location, get latitude longitude from address
+			codeAddress(search_box,function(lat,lng) {
+				getsearchdatas ();
+			});
+		} else {
+			search_flag = true;
+			getsearchdatas ();
+		}
+	}
+	
+});
+
+$("#pin-location").click(function (){
+	// getLocation();
+	moveToCurrentLocation();
+});
+
+$("#clear-btn").click(function (){
+	_search_by = 1;
+	$("#search-box").val("");
+	$("#search-box").attr("placeholder","Masukan Nama Lokasi");
+	$("#search-by").val("1");
+	$("#premium").prop('checked', false);
+	$("#cust_color").prop('checked', false);
+	$('input[name="category[]"]').prop('checked', false);
+	$('input[name="parent_category[]"]').prop('checked', false);
+	getsearchdatas ();
+});
+
+$("#search-by").change (function(){
+	var val_searchby = $(this).val();
+	if (val_searchby == 1) {
+		$("#search-box").attr("placeholder","Masukan Nama Lokasi");
+	} else if (val_searchby == 2) {
+		$("#search-box").attr("placeholder","Masukan Nama Toko");
+	} else if (val_searchby == 3) {
+		$("#search-box").attr("placeholder","Masukan Nama Produk");
+	} else {
+		$("#search-box").attr("placeholder","Masukan Nama Lokasi");
+	}
+});
+
+$("#search-box").keyup(function(event){
+	if(event.keyCode == 13){
+		$("#search-store").click();
+	}
+});
+
+// $('input[name="category[]"]').change (function(){
+	// getsearchdatas ();
+// });
+
+function checked_function (id, checked , callback) {
+	$("input[class='category_"+id+"']").prop('checked', checked);
+	callback(true);
+}
+
+$('input[name="parent_category[]"]').change (function(){
+	var id = $(this).val();
+	var checked = $(this).prop("checked");
+	checked_function (id, checked , function(data) {
+		getsearchdatas ();
+	});
+	
+});
+
+$('input[name="category[]"]').click(
+	function() {
+		var _class = $(this).attr("class");
+		if ($('.p_'+_class).prop('checked') == true && this.checked == false)
+			$('.p_'+_class).prop('checked', false);
+		if (this.checked == true) {
+			var flag = true;
+			$("input[class='"+_class+"']").each(
+				function() {
+					if (this.checked == false) {
+						flag = false;
+					}
+				}
+			);
+			$('.p_'+_class).prop('checked', flag);
+		}
+		
+		getsearchdatas ();
+	}
+);
+
+function load_checked() {
+	$('input[name="category[]"]').each( function () {
+		var _class = $(this).attr("class");
+		if ($('.p_'+_class).prop('checked') == true && this.checked == false)
+			$('.p_'+_class).prop('checked', false);
+		if (this.checked == true) {
+			var flag = true;
+			$("input[class='"+_class+"']").each(
+				function() {
+					if (this.checked == false) {
+						flag = false;
+					}
+				}
+			);
+			$('.p_'+_class).prop('checked', flag);
+		}
+	});
+}
+
+load_checked();
+
+
+function storeclick(s_lat, s_lng, s_tel){
+	// console.log(s_lat);
+	// console.log(s_lng);
+	// console.log(s_tel);
+	//open pop up 
+	$('#popup .modal-title').html("What would you like to do ?");
+	$('#popup .modal-text').html('<a href="tel:'+ ((s_tel) ? s_tel : "0") +'" class="btn storetelbtn">Telephone</a> <a href="https://www.google.com/maps/dir/Current+Location/'+ s_lat +','+s_lng+'" class="btn opgoogbtn" target="_blank">Open in google</a>');
+	$('#popup').addClass('active');
+};
+
+// Watches for map bounds change - if so - set radius and refresh data Start
+// function setproximityfrommap() {
+    // // Get Gmap radius / proximity start
+    // // First, determine the map bounds
+    // var bounds = map.getBounds();
+
+    // // Then the points
+    // var swPoint = bounds.getSouthWest();
+    // var nePoint = bounds.getNorthEast();
+
+    // // Now, each individual coordinate
+    // var swLat = swPoint.lat();
+    // var swLng = swPoint.lng();
+    // var neLat = nePoint.lat();
+    // var neLng = nePoint.lng();
+
+    // var proximitymeter = google.maps.geometry.spherical.computeDistanceBetween(swPoint, nePoint);
+    // var proximitykm = proximitymeter * 0.001;
+    // // var proximitymiles = proximitymeter * 0.000621371192;
+    // // proxmity = proximitymiles;
+    // console.log("Proxmity " + proximitykm + " km");
+	// return proximitykm/2;
+// }
+
+function setproximityfrommap() {
+    // Get Gmap radius / proximity start
+    // First, determine the map bounds
+    var bounds = map.getBounds();
+
+    var sw = bounds.getSouthWest();
+	var ne = bounds.getNorthEast();
+	var east = new google.maps.LatLng(0, ne.lng());
+	var west = new google.maps.LatLng(0, sw.lng());
+	var north = new google.maps.LatLng(ne.lat(), 0);
+	var south = new google.maps.LatLng(sw.lat(), 0);
+	var width = google.maps.geometry.spherical.computeDistanceBetween(east, west);
+	var height = google.maps.geometry.spherical.computeDistanceBetween(north, south);
+	
+	var radius = (height/2) + ((width*width)/(8*height));
+
+    // var proximitymeter = google.maps.geometry.spherical.computeDistanceBetween(swPoint, nePoint);
+    // var proximitykm = proximitymeter * 0.001;
+    // var proximitymiles = proximitymeter * 0.000621371192;
+    // proxmity = proximitymiles;
+    // console.log("Proxmity " + radius + " radius");
+	return radius * 0.001;
+}

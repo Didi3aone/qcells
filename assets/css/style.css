@@ -1,0 +1,310 @@
+/*
+    Avian Upgrade New
+    Start at 2017.12.05
+
+    by Digistyles
+*/
+
+*, body, h1, h2, h3, h4 {
+    font-family: Quicksand, sans-serif;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+.smart-form .label, th {
+    font-weight: 500;
+}
+#logo {
+    margin-top: 3px;
+}
+#logo img {
+    width: auto;
+    height: 40px;
+    padding-left: 3px;
+}
+.jarvismetro-tile .iconbox span {
+    display: block;
+    text-align: center;
+    font-size: 12px;
+}
+sup.color-red {
+    color: red;
+    font-weight: bold;
+}
+.row {
+    margin-right: -13px;
+    margin-left: -13px;
+}
+.table_thumb, .table_thumb img {
+    max-width: 40px;
+    max-height: 40px;
+}
+.actioncell {
+    min-width: 70px;
+}
+.have_data {
+    border: 1px solid #BDBDBD;
+    width: 100%;
+}
+.have_data>div {
+    font: 13px/16px 'Open Sans', Helvetica, Arial, sans-serif;
+    height: 20px;
+    line-height: 20px;
+    padding: 5px 10px;
+}
+.smart-form .col-12 {
+    width: 100%;
+}
+.one_set {
+    background-color: rgb(232, 232, 232);
+    padding: 10px;
+    border-radius: 10px;
+}
+[data-toggle=buttons]>.btn input[type=radio] {
+    width: initial!important;
+}
+/**
+ * PAGE - DASHBOARD
+ */
+
+.dash-count {
+    color: white;
+    padding-left: 30px;
+    padding-right: 30px;
+}
+.count-title {
+    font-size: 20px;
+}
+.counter {
+    font-size: 40px;
+}
+/* Email Blast Modal Box */
+
+.modal-title {
+    color: #212121;
+    font-size: 26px;
+    float: left;
+    font-weight: 700;
+}
+.modal-content {
+    border-radius: 2px;
+    padding: 40px;
+}
+.modal-header {
+    padding: 0 0 20px 0;
+}
+.modal-body {
+    padding: 0;
+}
+.modal-dialog {
+    max-width: 100%;
+}
+/* Email Blast */
+
+.wrapper-title {
+    font-size: 16px;
+    color: #595959;
+    margin: 15px 0px 15px 0px;
+    font-weight: 600;
+}
+.wrapper input[type="checkbox"] {
+    margin: 8px 8px 8px 0;
+}
+.wrapper .check-all {
+    margin-bottom: 15px;
+}
+/*page set pemeneng*/
+
+.smart-form .select2-container .select2-choice, .smart-form .select2-selection {
+    padding: 0 8px;
+}
+.select2-results li {
+    padding: 5px;
+}
+.form-inline .hasinput .input-group, .form-inline .hasinput .form-group {
+    width: 100% !important;
+}
+/* DATATABLES RESPONSIVE Highlight*/
+
+td.highlighted, li.highlighted {
+    background-color: antiquewhite;
+}
+.margin-bottom-20 {
+    margin-bottom: 20px;
+}
+.each_data.hide {
+    display: none !important;
+}
+.each_data.show {
+    display: table-row !important;
+}
+.smart-form .state-error input, .smart-form .state-error select, .smart-form .state-error textarea, .smart-form .radio.state-error i, .smart-form .checkbox.state-error i, .smart-form .toggle.state-error i, .smart-form .state-error .select2-selection {
+    background: #fff0f0;
+    border-color: #A90329;
+}
+.m-top-25 {
+    margin-top: 25px;
+}
+.hide_select {
+    display: none;
+}
+.smart-form .select2-selection__choice {
+    padding: 1px 28px 1px 8px;
+    margin: 4px 0 3px 5px;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+}
+.smart-form .select2-selection__choice__remove {
+    padding: 3px 4px 3px 6px;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box
+}
+.shape_row {
+    background-color: #d0d0d0;
+    margin: 10px !important;
+    padding: 10px;
+    border-radius: 10px;
+}
+.select2-container--default .select2-search--inline .select2-search__field {
+    width: 100% !important;
+}
+/* Yakult Loading */
+
+.cssload-box-loading:after {
+    background: url('../img/yakultbottle.png') center center no-repeat;
+}
+.dataTables_wrapper {
+    overflow: hidden;
+}
+.dataTables_processing {
+    width: 100%;
+    height: 1000px;
+    background: rgba(256, 256, 256, 0.90) !important;
+    font-size: 0px;
+    text-indent: -100%;
+    z-index: 5;
+}
+.dataTables_processing:before {
+    content: '';
+    width: 44px;
+    height: 4px;
+    background: rgb(49, 143, 68);
+    opacity: 0.1;
+    position: absolute;
+    top: 112px;
+    left: 50%;
+    margin-left: -22px;
+    border-radius: 50%;
+    animation: shadow 1.16s linear infinite;
+    -o-animation: shadow 1.16s linear infinite;
+    -ms-animation: shadow 1.16s linear infinite;
+    -webkit-animation: shadow 1.16s linear infinite;
+    -moz-animation: shadow 1.16s linear infinite;
+}
+.dataTables_processing:after {
+    content: '';
+    width: 44px;
+    height: 44px;
+    background: url('../img/yakultbottle.png') center center no-repeat;
+    position: absolute;
+    top: 60px;
+    left: 50%;
+    margin-left: -22px;
+    border-radius: 3px;
+    animation: cssload-animate 2.32s linear infinite;
+    -o-animation: cssload-animate 2.32s linear infinite;
+    -ms-animation: cssload-animate 2.32s linear infinite;
+    -webkit-animation: cssload-animate 2.32s linear infinite;
+    -moz-animation: cssload-animate 2.32s linear infinite;
+}
+.dataTables_length {
+    float: right;
+}
+.add-image-preview {
+    overflow: hidden;
+}
+/* color picker */
+
+.colorpicker-2x .colorpicker-saturation {
+    width: 200px;
+    height: 200px;
+}
+.colorpicker-2x .colorpicker-hue, .colorpicker-2x .colorpicker-alpha {
+    width: 30px;
+    height: 200px;
+}
+.colorpicker-2x .colorpicker-color, .colorpicker-2x .colorpicker-color div {
+    height: 30px;
+}
+.input-group-btn button.clear-filter {
+    border: 1px solid #ccc;
+}
+.list-thumbs {
+    max-height: 100px;
+}
+.csr-thumbs {
+    max-width: 250px;
+}
+.reset-rating{
+        color: #F44336;
+    cursor: pointer;
+}
+.label-unapproved {
+    background-color: #4CAF50;
+}
+.label-approved {
+    background-color: #2196F3;
+}
+.label-rejected {
+    background-color: #F44336;
+}
+.center{
+    text-align: center;
+}
+input[readonly], textarea[readonly]
+{
+    background-color:#eee !important;
+}
+
+.select2-container--default .select2-search--inline .select2-search__field {
+    height: 28px;
+    line-height: 28px;
+    margin: 0px;
+}
+.select2-container--default .select2-selection--multiple {
+    border: 1px solid #ccc;
+    min-height: 32px;
+    border-radius: 0px;
+}
+.smart-form .select2-container .select2-choice, .smart-form .select2-selection {
+    padding: 0px;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__rendered {
+    padding: 5px 25px 5px 5px;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    margin: 0px 5px 5px 0px;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__rendered li {
+    font-size: 15px;
+    height: 28px;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    font-size: 22px;
+    line-height: 22px;
+    padding: 0px;
+}
+textarea.form-control {
+    padding: 5px 8px;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+.smart-form .input input,
+.smart-form .select select,
+.smart-form .textarea textarea {
+    padding: 5px 8px;
+}
+.select2-container {
+    max-width: 100%;
+    min-width: 100%;
+}
